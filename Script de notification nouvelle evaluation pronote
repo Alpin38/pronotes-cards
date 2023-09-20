@@ -1,0 +1,35 @@
+alias: Nouvelle Note XXX
+description: Notification sur nouvelle note
+trigger:
+  - platform: state
+    entity_id: sensor.pronote_XXXXXXX_evaluations
+    id: note_enfant1
+    to: null
+condition: []
+action:
+  - if:
+      - condition: trigger
+        id: note_enfant1
+    then:
+      - service: notify.persistent_notification
+        data:
+          message: |
+            {% set evals = state_attr('sensor.pronote_XXXXXXXXX_evaluations','evaluations')[0] %}
+            {% set acquisitions = evals.acquisitions %}
+            XXXXX, viens de recevoir {{acquisitions|count}} évaluation{% if acquisitions|count >1 %}s{%endif%} en {{evals.subject}}{% if acquisitions|count >1 %}
+            {% for j in range(0,acquisitions|count,1) %}{% if acquisitions[j].level == 'Très bonne maîtrise' %}🔵-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[j].level == 'Maîtrise satisfaisante' %}🟢-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[j].level == "Début de maîtrise" %}🟡-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[j].level == 'Maîtrise fragile'  %}🟡-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[j].level == 'Maîtrise insuffisante'  %}🔴-> Thème: {{evals.acquisitions[j].name}}
+            {% else %}?-> Thème: {{evals.acquisitions[j].name}}
+            {% endif %}{% endfor %}   
+            {% else %}
+            {% if acquisitions[1].level == 'Très bonne maîtrise' %}🔵-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[1].level == 'Maîtrise satisfaisante' %}🟢-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[1].level == "Début de maîtrise" %}🟡-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[1].level == 'Maîtrise fragile'  %}🟡-> Thème: {{evals.acquisitions[j].name}}
+            {% elif acquisitions[1].level == 'Maîtrise insuffisante'  %}🔴-> Thème: {{evals.acquisitions[j].name}}
+            {% else %}?-> Thème: {{evals.acquisitions[j].name}}
+            {% endif %}{% endif %}
+mode: single
