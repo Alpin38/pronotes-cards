@@ -1,73 +1,76 @@
-        type: markdown
+type: markdown
         content: |-
-          {% if states('sensor.pronote_XXXXXX__timetable_today') != '0' %}
-            {% set timeupd = state_attr('sensor.pronote_XXXXXX__timetable_today','updated_at').strftime("%s") %}
-            {% set items = state_attr('sensor.pronote_XXXXXX__timetable_today','lessons') %}
 
-            {% if (items[items |count -1].end_at.strftime("%s") |int) + 3600 >= timeupd |int  %}
-            <div>Emploi du temps du {{as_timestamp(items[0].start_at) | int |
-            timestamp_custom('%d/%m/%Y', true)}}</div>
-            <table>
-            <tr>
-            <td><h5>Début</td>
-            <td><h5>Fin</td>
-            <td><h5>Matière</td>
-            <td><h5>Salle</td>
-            </tr>    
-            {% for i in range(0, items | count, 1) %}
-            <tr> 
-            {%- if items[i].canceled != True -%}
-            <td><mark>{{ items[i].start_time}}</td> 
-            <td><mark>{{ items[i].end_time }}</td></mark>
-            {%- if (items[i].start_at.strftime("%s")|int) <= timeupd |int and (items[i].end_at.strftime("%s")|int) > timeupd |int -%} 
-            <td><ul>{{ items[i].lesson }}</td>{% else %}<td>{{ items[i].lesson }}</td>{%- endif -%}
-            {% else %}
-            <td><del>{{ items[i].start_time }}</td>
-            <td><del>{{items[i].end_time}}</td>
-            <td><del>{{ items[i].lesson }}</del>&emsp;
-            {%- endif -%}
-            {% if items[i].status != None %}
-            <span> {{ items[i].status }}</td>
-            {% endif %}
-            <td> {{items[i].classroom }}</td>
-            </tr>
-            {% endfor %}
-            </table>
-            {% else %}
-           {% if states('sensor.pronote_XXXXXX__timetable_next_day') != '0' %}       
-            {% set items = state_attr('sensor.pronote_XXXXXX__timetable_next_day','lessons')
-            %} <div>Emploi du temps du : {{as_timestamp(items[0].start_at) | int |
-            timestamp_custom('%d/%m/%Y', true)}} </div>
-            <table>
-            <tr>
-            <td><h5>Début</td>
-            <td><h5>Fin</td>
-            <td><h5>Matière</td>
-            <td><h5>Salle</td>
-            </tr> 
-            {% for i in range(0, items | count, 1) %} 
-            <tr> 
-            {%- if items[i].canceled != True -%} 
-            <td><mark>{{ items[i].start_time}}</td> 
-            <td><mark>{{ items[i].end_time }}</td></mark>
-            <td>{{ items[i].lesson }}
-            {% else %}
-            <td><del>{{ items[i].start_time }}</td>
-            <td><del>{{items[i].end_time}}</td> <td>
-            <del>{{ items[i].lesson }}</del>&emsp;
-            {%- endif -%}
-            {% if items[i].status != None %} <span>
-            {{ items[i].status}}</td>
-            {% endif %}
-            <td> {{items[i].classroom }}</td>
-            </tr>
-            {% endfor %}
-            </table> 
-            {% else %} <div>Pas de Cours Prochainement</div> 
-            {% endif %}         
-            {% endif %}
-            {% else %} <div>Pas de Cours Aujoud'hui</div>
-          {% endif %}
+            {% set pronote_sensor = 'sensor.pronote_XXXXX_XXX' %}
+
+            {% if states(pronote_sensor+'_timetable_today') != '0' %}
+               {% set timeupd = state_attr(pronote_sensor+'_timetable_today','updated_at').strftime("%s") %}
+               {% set items = state_attr(pronote_sensor+'_timetable_today','lessons') %}
+               {% if (items[items |count -1].end_at.strftime("%s") |int) + 3600 >= timeupd |int  %}
+               <div>Emploi du temps du {{as_timestamp(items[0].start_at) | int |
+               timestamp_custom('%d/%m/%Y', true)}}</div>
+               <table>
+               <tr>
+               <td><h5>Début</td>
+               <td><h5>Fin</td>
+               <td><h5>Matière</td>
+               <td><h5>Salle</td>
+               </tr>    
+               {% for i in range(0, items | count, 1) %}
+               <tr> 
+               {%- if items[i].canceled != True -%}
+               <td><mark>{{ items[i].start_time}}</td> 
+               <td><mark>{{ items[i].end_time }}</td></mark>
+               {%- if (items[i].start_at.strftime("%s")|int) <= timeupd |int and (items[i].end_at.strftime("%s")|int) > timeupd |int -%} 
+               <td><ul>{{ items[i].lesson }}</td>{% else %}<td>{{ items[i].lesson }}</td>{%- endif -%}
+               {% else %}
+               <td><del>{{ items[i].start_time }}</td>
+               <td><del>{{items[i].end_time}}</td>
+               <td><del>{{ items[i].lesson }}</del>&emsp;
+               {%- endif -%}
+               {% if items[i].status != None %}
+               <span> {{ items[i].status }}</td>
+               {% endif %}
+               <td> {{items[i].classroom }}</td>
+               </tr>
+               {% endfor %}
+               </table>
+               {% else %}
+              {% if states(pronote_sensor+'_timetable_next_day') != '0' %}       
+               {% set items = state_attr(pronote_sensor+'_timetable_next_day','lessons')
+               %} <div>Emploi du temps du : {{as_timestamp(items[0].start_at) | int |
+               timestamp_custom('%d/%m/%Y', true)}} </div>
+               <table>
+               <tr>
+               <td><h5>Début</td>
+               <td><h5>Fin</td>
+               <td><h5>Matière</td>
+               <td><h5>Salle</td>
+               </tr> 
+               {% for i in range(0, items | count, 1) %} 
+               <tr> 
+               {%- if items[i].canceled != True -%} 
+               <td><mark>{{ items[i].start_time}}</td> 
+               <td><mark>{{ items[i].end_time }}</td></mark>
+               <td>{{ items[i].lesson }}
+               {% else %}
+               <td><del>{{ items[i].start_time }}</td>
+               <td><del>{{items[i].end_time}}</td> <td>
+               <del>{{ items[i].lesson }}</del>&emsp;
+               {%- endif -%}
+               {% if items[i].status != None %} <span>
+               {{ items[i].status}}</td>
+               {% endif %}
+               <td> {{items[i].classroom }}</td>
+               </tr>
+               {% endfor %}
+               </table> 
+               {% else %} <div>Pas de Cours Prochainement</div> 
+               {% endif %}         
+               {% endif %}
+               {% else %} <div>Pas de Cours Aujoud'hui</div>  
+
+             {% endif %}
         card_mod:
           style:
             .: |
