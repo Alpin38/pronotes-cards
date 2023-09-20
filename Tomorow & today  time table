@@ -5,7 +5,7 @@
             {% set items = state_attr('sensor.pronote_XXXXXX__timetable_today','lessons') %}
 
             {% if (items[items |count -1].end_at.strftime("%s") |int) + 3600 >= timeupd |int  %}
-            <div>[TD]Emploi du temps du {{as_timestamp(items[0].start_at) | int |
+            <div>Emploi du temps du {{as_timestamp(items[0].start_at) | int |
             timestamp_custom('%d/%m/%Y', true)}}</div>
             <table>
             <tr>
@@ -36,7 +36,7 @@
             {% else %}
            {% if states('sensor.pronote_XXXXXX__timetable_today') != '0' %}       
             {% set items = state_attr('sensor.pronote_XXXXXX__timetable_today','lessons')
-            %} <div>[ND]Emploi du temps du : {{as_timestamp(items[0].start_at) | int |
+            %} <div>Emploi du temps du : {{as_timestamp(items[0].start_at) | int |
             timestamp_custom('%d/%m/%Y', true)}} </div>
             <table>
             <tr>
