@@ -34,8 +34,8 @@
             {% endfor %}
             </table>
             {% else %}
-           {% if states('sensor.pronote_XXXXXX__timetable_today') != '0' %}       
-            {% set items = state_attr('sensor.pronote_XXXXXX__timetable_today','lessons')
+           {% if states('sensor.pronote_XXXXXX__timetable_next_day') != '0' %}       
+            {% set items = state_attr('sensor.pronote_XXXXXX__timetable_next_day','lessons')
             %} <div>Emploi du temps du : {{as_timestamp(items[0].start_at) | int |
             timestamp_custom('%d/%m/%Y', true)}} </div>
             <table>
