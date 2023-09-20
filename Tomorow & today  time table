@@ -1,0 +1,137 @@
+        type: markdown
+        content: |-
+          {% if states('sensor.pronote_XXXXXX__timetable_today') != '0' %}
+            {% set timeupd = state_attr('sensor.pronote_XXXXXX__timetable_today','updated_at').strftime("%s") %}
+            {% set items = state_attr('sensor.pronote_XXXXXX__timetable_today','lessons') %}
+
+            {% if (items[items |count -1].end_at.strftime("%s") |int) + 3600 >= timeupd |int  %}
+            <div>[TD]Emploi du temps du {{as_timestamp(items[0].start_at) | int |
+            timestamp_custom('%d/%m/%Y', true)}}</div>
+            <table>
+            <tr>
+            <td><h5>Début</td>
+            <td><h5>Fin</td>
+            <td><h5>Matière</td>
+            <td><h5>Salle</td>
+            </tr>    
+            {% for i in range(0, items | count, 1) %}
+            <tr> 
+            {%- if items[i].canceled != True -%}
+            <td><mark>{{ items[i].start_time}}</td> 
+            <td><mark>{{ items[i].end_time }}</td></mark>
+            {%- if (items[i].start_at.strftime("%s")|int) <= timeupd |int and (items[i].end_at.strftime("%s")|int) > timeupd |int -%} 
+            <td><ul>{{ items[i].lesson }}</td>{% else %}<td>{{ items[i].lesson }}</td>{%- endif -%}
+            {% else %}
+            <td><del>{{ items[i].start_time }}</td>
+            <td><del>{{items[i].end_time}}</td>
+            <td><del>{{ items[i].lesson }}</del>&emsp;
+            {%- endif -%}
+            {% if items[i].status != None %}
+            <span> {{ items[i].status }}</td>
+            {% endif %}
+            <td> {{items[i].classroom }}</td>
+            </tr>
+            {% endfor %}
+            </table>
+            {% else %}
+           {% if states('sensor.pronote_XXXXXX__timetable_today') != '0' %}       
+            {% set items = state_attr('sensor.pronote_XXXXXX__timetable_today','lessons')
+            %} <div>[ND]Emploi du temps du : {{as_timestamp(items[0].start_at) | int |
+            timestamp_custom('%d/%m/%Y', true)}} </div>
+            <table>
+            <tr>
+            <td><h5>Début</td>
+            <td><h5>Fin</td>
+            <td><h5>Matière</td>
+            <td><h5>Salle</td>
+            </tr> 
+            {% for i in range(0, items | count, 1) %} 
+            <tr> 
+            {%- if items[i].canceled != True -%} 
+            <td><mark>{{ items[i].start_time}}</td> 
+            <td><mark>{{ items[i].end_time }}</td></mark>
+            <td>{{ items[i].lesson }}
+            {% else %}
+            <td><del>{{ items[i].start_time }}</td>
+            <td><del>{{items[i].end_time}}</td> <td>
+            <del>{{ items[i].lesson }}</del>&emsp;
+            {%- endif -%}
+            {% if items[i].status != None %} <span>
+            {{ items[i].status}}</td>
+            {% endif %}
+            <td> {{items[i].classroom }}</td>
+            </tr>
+            {% endfor %}
+            </table> 
+            {% else %} <div>Pas de Cours Prochainement</div> 
+            {% endif %}         
+            {% endif %}
+            {% else %} <div>Pas de Cours Aujoud'hui</div>
+          {% endif %}
+        card_mod:
+          style:
+            .: |
+              ha-card ha-markdown {
+                padding:0px
+              }
+              ha-card ha-markdown.no-header {
+                padding:10px
+              }
+            ha-markdown$: |
+              div {
+                  background-color:rgb(100, 100, 100);
+                  padding: 12px 12px;
+                  color:white;
+                  font-weight:normal;
+                  font-size:1.2em;
+                  border-top-left-radius: 5px; 
+                  border-top-right-radius: 5px; 
+              }
+              table{
+                border-collapse: collapse;
+                font-family: Roboto;
+                width: 100%;
+                outline: 0px solid #393c3d;
+                margin-top:5px;
+              } caption {
+                  text-align: center;
+                  font-weight: bold;
+                  font-size: 1.2em;
+              } td {
+                  padding: 5px 10px 5px 10px;
+                  text-align: left;
+                  border-bottom: 0px solid #1c2020;
+              }
+              tr {
+                  border-bottom: 0px solid #1c2020;
+              }
+
+              tr:nth-of-type(even) {
+                  background-color: rgb(54, 54, 54, 0.3);
+              }
+              tr:last-of-type {
+                  border-bottom: transparent;          }*
+              mark {
+                  background: #2FE819;
+                  color: #222627;
+                  border-radius: 5px;
+                  padding: 5px;
+              }
+              ul {
+                  background: #649DF7;
+                  color: #222627;
+                  border-radius: 10px;
+                  padding: 5px;
+              }
+              span {
+                  background: #EC4B34;
+                  color: #222627;
+                  border-radius: 5px;
+                  padding: 5px;
+              }
+              span {
+                  padding: 5px;
+              }
+              tr:nth-child(n+2) > td:nth-child(2) {
+                text-align: left;
+              }
