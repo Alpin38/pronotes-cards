@@ -1,0 +1,389 @@
+alias: "[PRONOTE]"
+description: Gestion des notifications de pronote
+trigger:
+  - platform: state
+    entity_id: sensor.pronote_XXXXXX_zo_evaluations
+    id: evals_zoe
+    to: null
+  - platform: state
+    entity_id: sensor.pronote_XXXXXX_zo_delays
+    id: retard_zoe
+    to: null
+  - platform: state
+    entity_id: sensor.pronote_XXXXXX_zo_absences
+    id: absence_zoe
+    to: null
+  - platform: state
+    entity_id:
+      - sensor.pronote_XXXXXX_emma_evaluations
+    id: evals_emma
+    to: null
+  - platform: state
+    entity_id: sensor.pronote_XXXXXX_emma_grades
+    id: notes_emma
+    to: null
+  - platform: state
+    entity_id: sensor.pronote_XXXXXX_emma_delays
+    id: retard_emma
+    to: null
+  - platform: state
+    entity_id: sensor.pronote_XXXXXX_emma_absences
+    id: absence_emma
+    to: null
+  - platform: time
+    at: "19:30:00"
+    id: devoirs
+condition: []
+action:
+  - variables:
+      notification_absence_zoe: >
+        {% if states('sensor.pronote_XXXXXX_zo_absences')!='unavailable' %}{%
+        set absence =
+        state_attr('sensor.pronote_XXXXXX_zo_absences','absences')[0] %}
+
+        {% if absence.justified %}🟢{%else%}😡{%endif%} Absence {% if
+        absence.justified %}justifiée{%else%}non justifiée{%endif%} de Zoé
+
+        {{absence.reason}} de {{absence.from.strftime('%H:%M')}} à
+        {{absence.to.strftime('%H:%M')}}{%endif%}
+      notification_retard_zoe: >
+        {% if states('sensor.pronote_XXXXXX_zo_delays') != 'unavailable' %}{%
+        set delay = state_attr('sensor.pronote_XXXXXX_zo_delays','delays')[0]
+        %}
+
+        {% if delay.justified %}🟢{%else%}😡{%endif%} Retard {% if
+        delay.justified %}justifié{%else%}non justifié{%endif%} de Zoé
+
+        {{delay.minutes}} minutes de retard à {{delay.date.strftime('%H:%M')}}
+        => {{delay.justification}} / {{delay.reasons}}{%endif%}
+      notification_absence_emma: >
+        {% if states('sensor.pronote_XXXXXX_emma_absences') !='unavailable'
+        %}{% set absence =
+        state_attr('sensor.pronote_XXXXXX_emma_absences','absences')[0] %}
+
+        {% if absence.justified %}🟢{%else%}😡{%endif%} Absence {% if
+        absence.justified %}justifiée{%else%}non justifiée{%endif%} d'Emma
+
+        {{absence.reason}} de {{absence.from.strftime('%H:%M')}} à
+        {{absence.to.strftime('%H:%M')}}{%endif%}
+      notification_retard_emma: >
+        {% if states('sensor.pronote_XXXXXX_emma_delays') != 'unavailable'
+        %}{% set delay =
+        state_attr('sensor.pronote_XXXXXX_emma_delays','delays')[0] %}
+
+        {% if delay.justified %}🟢{%else%}😡{%endif%} Retard {% if
+        delay.justified %}justifié{%else%}non justifié{%endif%} d'Emma
+
+        {{delay.minutes}} minutes de retard à {{delay.date.strftime('%H:%M')}}
+        => {{delay.justification}} / {{delay.reasons}}{%endif%}
+      notification_evals_zoe: >
+        {% if states('sensor.pronote_XXXXXX_zo_evaluations') != 'unavailable'
+
+        %}{% set evals =
+
+        state_attr('sensor.pronote_XXXXXX_zo_evaluations','evaluations')[0] %}
+                
+        {% set acquisitions = evals.acquisitions %}Zoé, viens de recevoir
+
+        {{acquisitions|count}} évaluation{% if acquisitions|count >1
+
+        %}s{%endif%} en {{evals.subject}}{% if acquisitions|count >1 %}
+                
+        {% for j in range(0,acquisitions|count,1) %}{% if acquisitions[j].level
+
+        == 'Très bonne maîtrise' %}🔵->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == 'Maîtrise satisfaisante' %}🟢->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == "Début de maîtrise" %}🟡->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == 'Maîtrise fragile'  %}🟡->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == 'Maîtrise insuffisante'  %}😡->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% else %}?->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}{% endif %}{% endfor
+        %}{%
+
+        else %}
+
+        {% if acquisitions[0].level
+
+        == 'Très bonne maîtrise' %}🔵->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == 'Maîtrise satisfaisante' %}🟢->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == "Début de maîtrise" %}🟡->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == 'Maîtrise fragile'  %}🟡->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == 'Maîtrise insuffisante'  %}😡->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% else %}?->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% endif %}{% endif %}{% endif %}
+      notification_evals_emma: >
+        {% if states('sensor.pronote_XXXXXX_emma_evaluations') !=
+        'unavailable'
+
+        %}{% set evals =
+
+        state_attr('sensor.pronote_XXXXXX_emma_evaluations','evaluations')[0]
+        %}
+                
+        {% set acquisitions = evals.acquisitions %}Emma, viens de recevoir
+
+        {{acquisitions|count}} évaluation{% if acquisitions|count >1
+
+        %}s{%endif%} en {{evals.subject}}{% if acquisitions|count >1 %}
+                
+        {% for j in range(0,acquisitions|count,1) %}{% if acquisitions[j].level
+
+        == 'Très bonne maîtrise' %}🔵->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == 'Maîtrise satisfaisante' %}🟢->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == "Début de maîtrise" %}🟡->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == 'Maîtrise fragile'  %}🟡->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% elif acquisitions[j].level
+
+        == 'Maîtrise insuffisante'  %}😡->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}
+
+        {% else %}?->{% if evals.acquisitions[j].domain is
+        defined%}{{evals.acquisitions[j].domain}}:{%endif%}{% if
+        evals.acquisitions[j].name is
+        defined%}{{evals.acquisitions[j].name}}{%endif%}{% endif %}{% endfor
+        %}{%
+
+        else %}
+
+        {% if acquisitions[0].level
+
+        == 'Très bonne maîtrise' %}🔵->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == 'Maîtrise satisfaisante' %}🟢->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == "Début de maîtrise" %}🟡->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == 'Maîtrise fragile'  %}🟡->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% elif acquisitions[0].level
+
+        == 'Maîtrise insuffisante'  %}😡->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% else %}?->{% if evals.acquisitions[0].domain is
+        defined%}{{evals.acquisitions[0].domain}}:{%endif%}{% if
+        evals.acquisitions[0].name is
+        defined%}{{evals.acquisitions[0].name}}{%endif%}
+
+        {% endif %}{% endif %}{% endif %}
+      notification_note_emma: >
+        {% set evals =
+        state_attr('sensor.pronote_XXXXXX_emma_grades','grades')[0] %}
+
+        {% if evals.grade_out_of | regex_replace('/20','') >= '15' %}🔵{% elif
+        evals.grade_out_of | regex_replace('/20','') >= '10' %}🟢{% elif
+        evals.grade_out_of | regex_replace('/20','') >= '5' %}🟡{% elif
+        evals.grade_out_of | regex_replace('/20','') < '5'  %}🔴{% endif %} Emma
+        a eu un {{evals.grade_out_of}}  en {{evals.subject}}.
+
+        Moyenne de classe : {{evals.class_average}}
+      devoirs_zoe: >
+        Pour le
+        {{state_attr('sensor.pronote_XXXXXX_zo_timetable_next_day','lessons')[0].start_at.strftime('%d
+        - %m') }}
+
+        Nombre de devoirs =
+        {{state_attr('sensor.devoirs_zoe','devoirs_totaux')}} 
+
+        Devoirs Faits = {{state_attr('sensor.devoirs_zoe','devoirs_faits')}} 
+
+        Devoirs Restants =
+        {{state_attr('sensor.devoirs_zoe','devoirs_restants')}}
+      devoirs_emma: >
+        Pour le
+        {{state_attr('sensor.pronote_XXXXXX_emma_timetable_next_day','lessons')[0].start_at.strftime('%d
+        - %m') }}
+
+        Nombre de devoirs =
+        {{state_attr('sensor.devoirs_emma','devoirs_totaux')}} 
+
+        Devoirs Faits = {{state_attr('sensor.devoirs_emma','devoirs_faits')}} 
+
+        Devoirs Restants =
+        {{state_attr('sensor.devoirs_emma','devoirs_restants')}}
+  - if:
+      - condition: trigger
+        id: evals_zoe
+    then:
+      - service: notify.notif_pronote_parents_zoe
+        data:
+          message: "{{notification_evals_zoe}}"
+  - if:
+      - condition: trigger
+        id: retard_zoe
+    then:
+      - service: notify.notifs_GSM_parents
+        data:
+          message: "{{notification_retard_zoe}}"
+  - if:
+      - condition: trigger
+        id: absence_zoe
+    then:
+      - service: notify.notifs_GSM_parents
+        data:
+          message: "{{notification_absence_zoe}}"
+  - if:
+      - condition: trigger
+        id: evals_emma
+    then:
+      - service: notify.notif_pronote_parents_emma
+        data:
+          message: "{{notification_evals_emma}}"
+  - if:
+      - condition: trigger
+        id: notes_emma
+    then:
+      - service: notify.notif_pronote_parents_emma
+        data:
+          title: Notes Emma
+          message: "{{notification_note_emma}}"
+  - if:
+      - condition: trigger
+        id: retard_emma
+    then:
+      - service: notify.notifs_GSM_parents
+        data:
+          message: "{{notification_retard_emma}}"
+  - if:
+      - condition: trigger
+        id: absence_emma
+    then:
+      - service: notify.notifs_GSM_parents
+        data:
+          message: "{{notification_absence_emma}}"
+  - if:
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: devoirs
+          - condition: numeric_state
+            entity_id: sensor.devoirs_zoe
+            attribute: devoirs_restants
+            above: 0
+    then:
+      - service: notify.notif_pronote_parents_zoe
+        data:
+          title: Devoirs Zoé
+          message: "{{devoirs_zoe}}"
+  - if:
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: devoirs
+          - condition: numeric_state
+            entity_id: sensor.devoirs_emma
+            attribute: devoirs_restants
+            above: 0
+    then:
+      - service: notify.notif_pronote_parents_emma
+        data:
+          title: Devoirs Emma
+          message: "{{devoirs_emma}}"
+mode: queued
+max: 5
