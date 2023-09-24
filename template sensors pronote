@@ -1,0 +1,52 @@
+- platform: template
+  sensors:
+      derniere_mise_a_jour_de_pronote_emma:
+        friendly_name: "Dernière mise à jour de Pronote Emma"
+        value_template: >-
+          {{ state_attr('sensor.pronote_XXXXXX_emma','updated_at').strftime('%d-%m-%Y à %H:%M') }}
+
+
+      next_day_emma:
+            value_template: "{{state_attr('sensor.pronote_XXXXXX_emma_timetable_next_day','lessons')[0].start_at.strftime('%Y-%m-%d')}}"
+            unique_id: sensor.next_day_emma
+            friendly_name: "Prochain Jour de cours Emma"
+
+
+      devoirs_emma:
+            
+                              
+            unique_id: sensor.devoirs_emma_next_day
+            friendly_name: "Devoirs Emma" 
+            value_template: "{% set devoirs = namespace(total = 0,fait=0,restant=0) %}
+                              {% for state in range(states('sensor.pronote_XXXXXX_emma_homework') | int)  %}
+                                {% set homework = state_attr('sensor.pronote_XXXXXX_emma_homework','homework')[state] %}
+                                {% if homework.date | string == states('sensor.next_day_emma') %}
+                                {% if homework.done  == true  %}
+                                  {% set devoirs.fait = devoirs.fait + 1 %}
+                                  {%- endif  %}
+                                {% set devoirs.total = devoirs.total + 1 %}
+                                {%- endif  %}
+                              {%- endfor %}
+                              {% set devoirs.restant = devoirs.total -  devoirs.fait  %}
+                              {{ devoirs.restant  | int != 0 }}"
+            attribute_templates:
+              devoirs_totaux:  "{% set devoirs = namespace(total = 0) %}
+                              {% for state in range(states('sensor.pronote_XXXXXX_emma_homework') | int)  %}
+                                {% set homework = state_attr('sensor.pronote_XXXXXX_emma_homework','homework')[state] %}
+                                {% if homework.date | string == states('sensor.next_day_emma') %}
+                                {% set devoirs.total = devoirs.total + 1 %}
+                                {%- endif  %}
+                              {%- endfor %}
+                              {{devoirs.total}}"
+              devoirs_faits:  "{% set devoirs = namespace(fait = 0) %}
+                              {% for state in range(states('sensor.pronote_XXXXXX_emma_homework') | int)  %}
+                                {% set homework = state_attr('sensor.pronote_XXXXXX_emma_homework','homework')[state] %}
+                                {% if homework.date | string == states('sensor.next_day_emma') %}
+                                  {% if homework.done  == true  %}
+                                    {% set devoirs.fait = devoirs.fait + 1 %}
+                                  {%- endif  %}
+                                {%- endif  %}
+                              {%- endfor %}
+                              {{ devoirs.fait}}"
+              devoirs_restants:  "{{state_attr('sensor.devoirs_emma','devoirs_totaux') |int - state_attr('sensor.devoirs_emma','devoirs_faits') |int}}"
+              pour_le: "{{state_attr('sensor.pronote_XXXXXX_emma_timetable_next_day','lessons')[0].start_at.strftime('%Y-%m-%d') }}"
